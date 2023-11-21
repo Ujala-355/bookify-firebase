@@ -8,8 +8,8 @@ import {
     signInWithPopup,
     onAuthStateChanged,
 } from "firebase/auth";
-import {getFirestore,collection,addDoc} from "firebase/firestore";
-import {getStorage,ref,uploadBytes} from "firebase/storage";
+import {getFirestore,collection,addDoc,getDocs} from "firebase/firestore";
+import {getStorage, ref, uploadBytes, getDownloadURL} from "firebase/storage";
 
 const FirebaseContext=createContext(null);
 const firebaseConfig = {
@@ -65,6 +65,20 @@ export const FirebaseProvider=(props)=>{
 
         })
     }
+
+    const listAllBooks=()=>{
+        return getDocs(collection(firestore,"books"))
+    }
+
+    const getImageURL=async (path)=>{
+        try{
+            const downloadURL=await getDownloadURL(ref(storage,path));
+            return downloadURL;
+        }
+        catch(error){
+            console.log("error",error)
+        }
+    }
     const isLoggedIn=user ? true:false;
     return(
         <>
@@ -73,6 +87,8 @@ export const FirebaseProvider=(props)=>{
                 signupUserWithEmailAndPassword, 
                 singinUserWithEmailAndPass,
                 handleCreateNewListing,
+                listAllBooks,
+                getImageURL,
                 isLoggedIn,
                 }}>
                 {props.children}
