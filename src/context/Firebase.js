@@ -8,7 +8,7 @@ import {
     signInWithPopup,
     onAuthStateChanged,
 } from "firebase/auth";
-import {getFirestore,collection,addDoc,getDocs} from "firebase/firestore";
+import {getFirestore,collection,addDoc,getDocs,doc,getDoc} from "firebase/firestore";
 import {getStorage, ref, uploadBytes, getDownloadURL} from "firebase/storage";
 
 const FirebaseContext=createContext(null);
@@ -70,6 +70,24 @@ export const FirebaseProvider=(props)=>{
         return getDocs(collection(firestore,"books"))
     }
 
+    // const getBookById=async(id)=>{
+    //     const docRef= doc(firestore,"book",id);
+    //     const result= await getDoc(docRef);
+    //     return result;
+    // }
+    const getBookById = async (id) => {
+        const docRef = doc(firestore, "books", id);
+        const result = await getDoc(docRef);
+      
+        if (result.exists()) {
+          return result.data();
+        } else {
+          console.log("Document does not exist!");
+          return null;
+        }
+      };
+      
+      
     const getImageURL=async (path)=>{
         try{
             const downloadURL=await getDownloadURL(ref(storage,path));
@@ -79,6 +97,24 @@ export const FirebaseProvider=(props)=>{
             console.log("error",error)
         }
     }
+    const placeOrder = async (bookId, qty) => {
+        if (user) {
+            const collectionRef = collection(firestore, 'books', bookId, 'orders');
+            const result = await addDoc(collectionRef, {
+                userID: user.uid,
+                userEmail: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+                qty: Number(qty),
+            });
+            return result;
+        } 
+        else{
+            console.error('User is not authenticated. Cannot place the order.');
+            return null;
+        }
+    };
+    
     const isLoggedIn=user ? true:false;
     return(
         <>
@@ -89,6 +125,8 @@ export const FirebaseProvider=(props)=>{
                 handleCreateNewListing,
                 listAllBooks,
                 getImageURL,
+                getBookById,
+                placeOrder,
                 isLoggedIn,
                 }}>
                 {props.children}
