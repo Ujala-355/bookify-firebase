@@ -11,7 +11,7 @@ const BookDetailPage = () => {
     const [url, setURL]=useState(null);
     const [qty,setQty]=useState(1);
     // console.log(params);
-    console.log(data);
+    // console.log(data);
 
     useEffect(() => {
         firebase.getBookById(params.bookId).then((value) =>setData(value));

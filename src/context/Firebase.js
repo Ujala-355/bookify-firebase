@@ -8,7 +8,7 @@ import {
     signInWithPopup,
     onAuthStateChanged,
 } from "firebase/auth";
-import {getFirestore,collection,addDoc,getDocs,doc,getDoc} from "firebase/firestore";
+import {getFirestore,collection,addDoc,getDocs,doc,getDoc,query,where} from "firebase/firestore";
 import {getStorage, ref, uploadBytes, getDownloadURL} from "firebase/storage";
 
 const FirebaseContext=createContext(null);
@@ -31,17 +31,28 @@ const googleProvider=new GoogleAuthProvider()
 
 export const FirebaseProvider=(props)=>{
     const [user, setUser]=useState(null);
-    useEffect(()=>{
-        onAuthStateChanged(firebaseAuth, user=>{
-            if(user){ 
-                setUser(user);
-            }
-            else{ 
-                setUser(null);
-            console.log("User",user)
-            }
-        })
-    },[]);
+    // useEffect(()=>{
+    //     onAuthStateChanged(firebaseAuth, user=>{
+    //         if(user){ 
+    //             setUser(user);
+    //         }
+    //         else{ 
+    //             setUser(null);
+    //         console.log("User",user)
+    //         }
+    //     })
+    // },[]);
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(firebaseAuth, (authUser) => {
+          if (authUser) {
+            setUser(authUser);
+          } else {
+            setUser(null);
+          }
+        });
+    
+        return () => unsubscribe(); // Cleanup the subscription on component unmount
+      }, []);
     const signupUserWithEmailAndPassword=(email,password)=>
         createUserWithEmailAndPassword(firebaseAuth,email,password);
     
@@ -78,7 +89,6 @@ export const FirebaseProvider=(props)=>{
     const getBookById = async (id) => {
         const docRef = doc(firestore, "books", id);
         const result = await getDoc(docRef);
-      
         if (result.exists()) {
           return result.data();
         } else {
@@ -115,6 +125,30 @@ export const FirebaseProvider=(props)=>{
         }
     };
     
+    // const fetchMyBooks=async(userId)=>{
+    //     const collectionRef=collection(firestore,"books");
+    //     const q=query(collectionRef, where("userID","==", user.uid));
+    //     const result=await getDocs(q);
+    //     console.log(result)
+    // }
+    const fetchMyBooks = async () => {
+        if (user) {
+            const collectionRef = collection(firestore, "books");
+            const q = query(collectionRef, where("userID", "==", user.uid));
+            const result = await getDocs(q);
+            return result.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        } 
+        else {
+            console.error("User is not authenticated. Cannot fetch books.");
+            return [];
+        }
+    };
+    
+    const getOrders=async(bookId)=>{
+      const collectionRef=collection(firestore,'books',bookId,'orders')
+      const result=await getDocs(collectionRef);
+      return result;
+    }
     const isLoggedIn=user ? true:false;
     return(
         <>
@@ -127,6 +161,9 @@ export const FirebaseProvider=(props)=>{
                 getImageURL,
                 getBookById,
                 placeOrder,
+                fetchMyBooks,
+                getOrders,
+                user,
                 isLoggedIn,
                 }}>
                 {props.children}

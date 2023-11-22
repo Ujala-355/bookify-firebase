@@ -8,13 +8,18 @@ const HomePage=()=>{
     const [books,setBooks]=useState([]);
     useEffect(()=>{
         firebase.listAllBooks().then((books)=> setBooks(books.docs));
-    });
+    },[firebase]);
     return (
         <>
             <div className="container mt-5">
                 <CardGroup>
                 {books.map((book)=>(
-                    <BookCard key={book.id} id={book.id} {...book.data()}/>
+                    <BookCard 
+                        link={`/book/view/${book.id}`} 
+                        key={book.id} 
+                        id={book.id} 
+                        {...book.data()}
+                    />
                 ))}
                 </CardGroup>
             </div>

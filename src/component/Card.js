@@ -7,9 +7,6 @@ const BookCard=(props)=>{
     const firebase=useFirebase();
     const navigate=useNavigate()
     const [url,setURL]=useState(null);
-    // useEffect(()=>{
-    //     firebase.getImageURL(props.imageURL).then((url)=>setURL(url));
-    // },[])
     useEffect(() => {
         const fetchImageURL = async () => {
             try {
@@ -21,7 +18,7 @@ const BookCard=(props)=>{
         };
 
         fetchImageURL();
-    }, [firebase, props.imageURL]);
+    }, [firebase, props.imageURL,props.link]);
     console.log(props)
     return(
         <>
@@ -32,7 +29,7 @@ const BookCard=(props)=>{
                     <Card.Text>
                     This book has a title {props.name } and This book is sold by {props.displayName } and this book costs Rs.{props.price}
                     </Card.Text>
-                    <Button onClick={e=>navigate(`/book/view/${props.id}`)} variant="primary" >Go somewhere</Button>
+                    <Button onClick={e=>navigate(props.link)} variant="primary" >View</Button>
                 </Card.Body>
             </Card>
         </>
